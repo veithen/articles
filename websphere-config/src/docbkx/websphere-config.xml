@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<article>
+    <articleinfo>
+        <title>Understanding the WebSphere configuration repository</title>
+        <releaseinfo>Revision <?eval ${project.version}?></releaseinfo>
+    </articleinfo>
+    <section>
+        <title>Repository structure and metadata</title>
+        <para>
+            At a low level, the WebSphere configuration repository is a collection of folders and documents.
+            Although these resources are persisted one-to-one as directories and files under the <filename>config</filename>
+            directory in the WebSphere profile, the <firstterm>configuration repository service</firstterm> in WebSphere is more that a simple file
+            access service. It allows a client (such as <command>wsadmin</command>) to prepare a set of changes
+            in a so called <firstterm>workspace</firstterm><footnote><para>Workspaces are stored in the <filename>wstemp</filename> directory
+            in the WebSphere profile.</para></footnote> and to save these changes at once (or to discard the changes
+            if something goes wrong). The repository service detects conflicts to prevent clients from attempting
+            to modify the same documents concurrently. It also tracks changes so that node agents can incrementally
+            replicate the master configuration repository from the deployment manager to individual nodes.
+        </para>
+        <para>
+            The configuration repository is used by WebSphere for various things. E.g. application binaries are stored
+            there. However, most of the documents in the repository contain <firstterm>configuration objects</firstterm>.
+            
+        </para>
+        <para>
+            TODO
+        </para>
+        <figure>
+            <title>Repository metadata</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="repository-metadata.png" format="PNG"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+    </section>
+    <section>
+        <title>Configuration IDs</title>
+        <para>
+            A configuration object is uniquely identified by an identifier with the following structure:
+        </para>
+        <screen><replaceable>name</replaceable>(<replaceable>context</replaceable>|<replaceable>file</replaceable>#<replaceable>id</replaceable>)</screen>
+        <para>
+            Example:
+        </para>
+        <screen>server1(cells/test/nodes/lx03/servers/server1|server.xml#Server_1365407856726)</screen>
+    </section>
+</article>
