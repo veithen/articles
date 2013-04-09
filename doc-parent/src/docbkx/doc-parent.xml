@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<article>
+    <articleinfo>
+        <title>DocBook parent POM usage guide</title>
+    </articleinfo>
+    <section>
+        <title>Adding revision information to the document</title>
+        <para>
+            The POM version can be added automatically to the
+            generated document by including the following in the <literal>&lt;bookinfo&gt;</literal>
+            element:
+        </para>
+<programlisting><![CDATA[<releaseinfo>
+    <?eval ${project.version}?>
+</releaseinfo>]]></programlisting>
+    </section>
+</article>
