@@ -1,83 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2008 rel. 2 sp2 (http://www.altova.com) by USER (KSZ-BCSS) -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
-    <xsd:element name="metadata">
-        <xsd:complexType>
-            <xsd:all>
-                <xsd:element name="metadata-name" type="xsd:string"/>
-                <xsd:element name="root-context-type" type="xsd:string" minOccurs="0"/>
-                <xsd:element name="contexts">
-                    <xsd:complexType>
-                        <xsd:sequence>
-                            <xsd:element name="context" minOccurs="0" maxOccurs="unbounded">
-                                <xsd:complexType>
-                                    <xsd:all>
-                                        <xsd:element name="context-name" type="xsd:string"/>
-                                        <xsd:element name="root-document-type" type="xsd:string" minOccurs="0"/>
-                                        <xsd:element name="child-context-names" minOccurs="0">
-                                            <xsd:complexType>
-                                                <xsd:sequence>
-                                                    <xsd:element name="child-context-name" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-                                                </xsd:sequence>
-                                            </xsd:complexType>
-                                        </xsd:element>
-                                        <xsd:element name="child-document-names" minOccurs="0">
-                                            <xsd:complexType>
-                                                <xsd:sequence>
-                                                    <xsd:element name="child-document-name" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-                                                </xsd:sequence>
-                                            </xsd:complexType>
-                                        </xsd:element>
-                                    </xsd:all>
-                                </xsd:complexType>
-                            </xsd:element>
-                        </xsd:sequence>
-                    </xsd:complexType>
-                </xsd:element>
-                <xsd:element name="documents">
-                    <xsd:complexType>
-                        <xsd:sequence>
-                            <xsd:element name="document" minOccurs="0" maxOccurs="unbounded">
-                                <xsd:complexType>
-                                    <xsd:all>
-                                        <xsd:element name="document-name" type="xsd:string"/>
-                                        <xsd:element name="file-pattern" type="xsd:string"/>
-                                        <xsd:element name="root-refobject-types" minOccurs="0">
-                                            <xsd:complexType>
-                                                <xsd:sequence>
-                                                    <xsd:element name="root-refobject-type" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-                                                </xsd:sequence>
-                                            </xsd:complexType>
-                                        </xsd:element>
-                                        <xsd:element name="child-validator-names" minOccurs="0">
-                                            <xsd:complexType>
-                                                <xsd:sequence>
-                                                    <xsd:element name="child-validator-name" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-                                                </xsd:sequence>
-                                            </xsd:complexType>
-                                        </xsd:element>
-                                    </xsd:all>
-                                </xsd:complexType>
-                            </xsd:element>
-                        </xsd:sequence>
-                    </xsd:complexType>
-                </xsd:element>
-                <xsd:element name="validators" minOccurs="0">
-                    <xsd:complexType>
-                        <xsd:sequence>
-                            <xsd:element name="validator" minOccurs="0" maxOccurs="unbounded">
-                                <xsd:complexType>
-                                    <xsd:all>
-                                        <xsd:element name="validator-name" type="xsd:string"/>
-                                        <xsd:element name="validator-class-name" type="xsd:string"/>
-                                        <xsd:element name="validator-description" type="xsd:string"/>
-                                        <xsd:element name="cross-document" type="xsd:boolean"/>
-                                    </xsd:all>
-                                </xsd:complexType>
-                            </xsd:element>
-                        </xsd:sequence>
-                    </xsd:complexType>
-                </xsd:element>
-            </xsd:all>
-        </xsd:complexType>
-    </xsd:element>
+	<xsd:element name="metadata">
+		<xsd:complexType>
+			<xsd:all>
+				<xsd:element name="metadata-name" type="xsd:string"/>
+				<xsd:element name="root-context-type" type="xsd:string" minOccurs="0"/>
+				<xsd:element name="contexts" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="context" minOccurs="0" maxOccurs="unbounded">
+								<xsd:complexType>
+									<xsd:all>
+										<xsd:element name="context-name" type="xsd:string"/>
+										<xsd:element name="root-document-type" type="xsd:string" minOccurs="0"/>
+										<xsd:element name="child-context-names" minOccurs="0">
+											<xsd:complexType>
+												<xsd:sequence>
+													<xsd:element name="child-context-name" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+												</xsd:sequence>
+											</xsd:complexType>
+										</xsd:element>
+										<xsd:element name="child-document-names" minOccurs="0">
+											<xsd:complexType>
+												<xsd:sequence>
+													<xsd:element name="child-document-name" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+												</xsd:sequence>
+											</xsd:complexType>
+										</xsd:element>
+									</xsd:all>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="documents" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="document" minOccurs="0" maxOccurs="unbounded">
+								<xsd:complexType>
+									<xsd:all>
+										<xsd:element name="document-name" type="xsd:string"/>
+										<xsd:element name="file-pattern" type="xsd:string"/>
+										<xsd:element name="root-refobject-types" minOccurs="0">
+											<xsd:complexType>
+												<xsd:sequence>
+													<xsd:element name="root-refobject-type" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+												</xsd:sequence>
+											</xsd:complexType>
+										</xsd:element>
+										<xsd:element name="child-validator-names" minOccurs="0">
+											<xsd:complexType>
+												<xsd:sequence>
+													<xsd:element name="child-validator-name" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+												</xsd:sequence>
+											</xsd:complexType>
+										</xsd:element>
+									</xsd:all>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="validators" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="validator" minOccurs="0" maxOccurs="unbounded">
+								<xsd:complexType>
+									<xsd:all>
+										<xsd:element name="validator-name" type="xsd:string"/>
+										<xsd:element name="validator-class-name" type="xsd:string"/>
+										<xsd:element name="validator-description" type="xsd:string"/>
+										<xsd:element name="cross-document" type="xsd:boolean"/>
+									</xsd:all>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:all>
+		</xsd:complexType>
+	</xsd:element>
 </xsd:schema>
