@@ -6,7 +6,7 @@
         <releaseinfo>Revision <?eval ${project.version}?></releaseinfo>
     </articleinfo>
     <section>
-        <title>Repository structure and metadata</title>
+        <title>Repository structure</title>
         <para>
             At a low level, the WebSphere configuration repository is a collection of folders and documents.
             Although these resources are persisted one-to-one as directories and files under the <filename>config</filename>
@@ -75,7 +75,46 @@
                 </listitem>
             </varlistentry>
         </variablelist>
-        
+    </section>
+    <section>
+        <title>Repository metadata</title>
+        <para>
+            To manage the configuration data, the config service needs metadata that describes the
+            supported types of contexts, documents and configuration objects, as well as their relationships.
+            This metadata comes from two sources:
+        </para>
+        <orderedlist>
+            <listitem>
+                <para>
+                    As noted earlier, configuration objects are defined using EMF.
+                    In EMF, classes and their relationships are described using <firstterm>Ecore models</firstterm>.
+                    Ecore models are conceptually similar to (but simpler than) UML models, and they
+                    can be used to generate Java code. The generated code not only contains the Java classes
+                    corresponding to the classes defined in the Ecore model, but also code that allows to
+                    introspect the model at runtime. This code is contained in implementations of the
+                    <classname>org.eclipse.emf.ecore.EPackage</classname> interface.
+                    
+                    no single EMF model
+                    
+                </para>
+                <para>
+                    TODO: Do the plug-ins contain the original ECore files? No.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    
+                </para>
+            </listitem>
+        </orderedlist>
+        <figure>
+            <title>Structure of the metadata files in <filename>.repository</filename></title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="metadata-schema.png" format="PNG"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
         <figure>
             <title>Repository metadata</title>
             <mediaobject>
