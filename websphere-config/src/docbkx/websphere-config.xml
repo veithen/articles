@@ -69,53 +69,80 @@
                         Configuration objects are described using the
                         <ulink url="http://www.eclipse.org/modeling/emf/">Eclipse Modeling Framework</ulink>. 
                     </para>
-                    <para>
-                        TODO: mention containment relationships
-                    </para>
                 </listitem>
             </varlistentry>
         </variablelist>
     </section>
-    <section>
-        <title>Repository metadata</title>
+    <section id="metadata">
+        <title>Metadata</title>
         <para>
             To manage the configuration data, the config service needs metadata that describes the
             supported types of contexts, documents and configuration objects, as well as their relationships.
-            This metadata comes from two sources:
+            This metadata comes from two sources that we will describe in this section.
         </para>
-        <orderedlist>
-            <listitem>
-                <para>
-                    As noted earlier, configuration objects are defined using EMF.
-                    In EMF, classes and their relationships are described using <firstterm>Ecore models</firstterm>.
-                    Ecore models are conceptually similar to (but simpler than) UML models, and they
-                    can be used to generate Java code. The generated code not only contains the Java classes
-                    corresponding to the classes defined in the Ecore model, but also code that allows to
-                    introspect the model at runtime. This code is contained in implementations of the
-                    <classname>org.eclipse.emf.ecore.EPackage</classname> interface.
-                    
-                    no single EMF model
-                    
-                </para>
-                <para>
-                    TODO: Do the plug-ins contain the original ECore files? No.
-                </para>
-            </listitem>
-            <listitem>
-                <para>
-                    
-                </para>
-            </listitem>
-        </orderedlist>
-        <figure>
-            <title>Structure of the metadata files in <filename>.repository</filename></title>
+        <para>
+            As noted earlier, configuration objects are defined using EMF.
+            In EMF, classes and their relationships are described using <firstterm>Ecore models</firstterm>.
+            Ecore models are conceptually similar to (but simpler than) UML models, and they
+            can be used to generate Java code. The generated code not only contains the Java classes
+            corresponding to the classes defined in the Ecore model, but also code that allows to
+            introspect the model at runtime. This code is contained in implementations of the
+            <classname>org.eclipse.emf.ecore.EPackage</classname> interface that are registered
+            in the EMF package registry (<literal>EPackage.Registry.INSTANCE</literal>).
+            The config service uses this EMF metadata to discover configuration object types,
+            their attributes and relationships which each other.
+        </para>
+        <para>
+            Starting with version 6.1, the WebSphere runtime has a modular design based on
+            the Eclipse platform. It is split into a set of plug-ins, and each of these plug-ins
+            can contribute EMF packages to the configuration model.
+            In EMF, the standard mechanism to discover packages in the deployed plug-ins and to populate
+            the package registry uses the <literal>org.eclipse.emf.ecore.generated_package</literal>
+            extension point.
+            However, WebSphere uses its own extension point for this, namely
+            <literal>com.ibm.wsspi.extension.server-model-init</literal>.
+        </para>
+        <para>
+            WebSphere uses EMF as a facility to discover configuration object types and also
+            to store graphs of configuration objects in XML documents. However, EMF doesn't allow
+            to describe the overall structure of the repository, e.g. which document is used to
+            store which type of configuration object, and what are the documents expected in a
+            given repository context.
+        </para>
+        <para>
+            That kind of metadata is provided by a set of XML documents stored in the
+            <filename>.repository</filename> folder in the repository itself.
+            All the files in that folder have the same structure, as shown in
+            <xref linkend="fig-metadata-schema"/>.
+        </para>
+        <figure id="fig-metadata-schema">
+            <title>Structure of the metadata files in the <filename>.repository</filename> folder</title>
             <mediaobject>
                 <imageobject>
                     <imagedata fileref="metadata-schema.png" format="PNG"/>
                 </imageobject>
             </mediaobject>
         </figure>
-        <figure>
+        <para>
+            One can see that these files define the hierarchy of repository contexts as well as the
+            documents that can exist in each context. The <literal>root-refobject-type</literal> elements
+            also establish links between document types and the types of configuration objects they contain.
+        </para>
+        <para>
+            Files in the <filename>.repository</filename> folder are parsed by a class called
+            <classname>com.ibm.ws.sm.workspace.metadata.impl.MetaDataParser</classname>.
+            Metadata coming from different files is simply merged together by that parser. This means e.g. that
+            a repository context is not necessarily completely defined in a single file; the definition
+            may be scattered over multiple files.
+            The reason for this is obviously to allow a product extension to modify an existing context
+            definition by simply adding a file to the <filename>.repository</filename> folder.
+        </para>
+        <para>
+            At runtime, the metadata is modelled as shown in <xref linkend="fig-repository-metadata"/>.
+            Note that <classname>EClass</classname> represents the EMF metadata for a given
+            configuration object type.
+        </para>
+        <figure id="fig-repository-metadata">
             <title>Repository metadata</title>
             <mediaobject>
                 <imageobject>
@@ -125,15 +152,215 @@
         </figure>
     </section>
     <section>
+        <title>Configuration object serialization; root and inner configuration objects</title>
+        <para>
+            As mentioned earlier, WebSphere uses EMF not only to describe configuration objects,
+            but also to serialize them to XML. This XML data is then stored as documents in the repository.
+            Actually, the format used is XMI (XML Metadata Interchange). It allows to serialize
+            EMF model instances to XML in a standard way without additional metadata (i.e. without the need to
+            explicitly define the mapping to XML).
+        </para>
+        <para>
+            EMF explicitly supports the notion of <firstterm>containment</firstterm>.
+            E.g. the <classname>ServerCluster</classname> class has an attribute <varname>members</varname>
+            which is a reference of type <classname>ClusterMember</classname> with multiplicity 0&hellip;*.
+            This reference is modelled as a containment relation.
+            In XMI, contained objects are serialized as child elements of the XML element representing
+            the containing object, as shown in the following sample:
+        </para>
+        <programlisting><?db-font-size 70%?><![CDATA[<topology.cluster:ServerCluster xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:topology.cluster="http://www.ibm.com/websphere/appserver/schemas/5.0/topology.cluster.xmi"
+    xmi:id="ServerCluster_1362990710886"
+    name="cluster0" preferLocal="true" nodeGroupName="DefaultNodeGroup">
+  <members xmi:id="ClusterMember_1362990716560" memberName="server1" weight="2"
+      uniqueId="1362990714239" nodeName="ulx00003"/>
+  <members xmi:id="ClusterMember_1362990717935" memberName="server2" weight="2"
+      uniqueId="1362990716833" nodeName="ulx00004"/>
+</topology.cluster:ServerCluster>]]></programlisting>
+        <para>
+            Note that an XMI document can have one or more root objects. In the latter case,
+            the serialized objects are wrapped in an <literal>xmi:XMI</literal> element.
+            E.g. a <filename>resources.xml</filename> document contains a collections a collection
+            of <classname>J2EEResourceProvider</classname> objects.
+        </para>
+        <para>
+            The existence of containment relations allows to distinguish between to categories
+            of configuration objects:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>Root configuration object</term>
+                <listitem>
+                    <para>
+                        A configuration object that is not contained in another configuration object and
+                        that appears at the top level of an XMI document.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Inner configuration object</term>
+                <listitem>
+                    <para>
+                        A configuration ojbect that is contained in another configuration object
+                        (which may be a root or an inner configuration object).
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            In principle, the same configuration object type could be used both for root configuration objects
+            and for inner configuration objects (depending on the part of the configuration where it is used).
+            However this possibility is not actually used, which means that the distinction between
+            root and inner not only applies to configuration objects, but also extends to configuration object types.
+            E.g. <classname>ServerCluster</classname> is a root configuration object type, and
+            <classname>ClusterMember</classname> is an inner configuration object type.
+        </para>
+        <note>
+            <para>
+                Not correct; see <filename>pmi-config.xml</filename>.
+            </para>
+        </note>
+    </section>
+    <section>
         <title>Configuration IDs</title>
         <para>
             A configuration object is uniquely identified by an identifier with the following structure:
         </para>
         <screen><replaceable>name</replaceable>(<replaceable>context</replaceable>|<replaceable>file</replaceable>#<replaceable>id</replaceable>)</screen>
         <para>
+            <replaceable>context</replaceable> identifies the repository context and is equal to the relative path to
+            the corresponding folder in the repository, <replaceable>file</replaceable> identifies the document in that folder and
+            <replaceable>id</replaceable> identifies the configuration object inside that document.
+            <replaceable>name</replaceable> is not a mandatory part of the configuration ID. It is returned by WebSphere
+            for objects that have a <varname>name</varname> attribute and its only purpose is to improve human readability.
+            For configuration IDs passed to WebSphere, the <replaceable>name</replaceable> is ignored.
+        </para>
+        <para>
             Example:
         </para>
-        <screen>server1(cells/test/nodes/lx03/servers/server1|server.xml#Server_1365407856726)</screen>
+        <screen>lx03(cells/test/nodes/lx03|node.xml#Node_1)</screen>
+        <para>
+            Obviously the format of the configuration ID is chosen to allow WebSphere to load a configuration object
+            quickly without scanning the entire repository.
+        </para>
+    </section>
+    <section>
+        <title>Parent-child relationships</title>
+        <section>
+            <title>How parent-child relations are defined</title>
+            <para>
+                Configuration objects are linked by parent-child relations. They are defined in two different ways:
+            </para>
+            <orderedlist>
+                <listitem>
+                    <para>
+                        By containment relations in the EMF models (cf. previous section).
+                        E.g. a <classname>ClusterMember</classname> is a child of a <classname>ServerCluster</classname>.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <xref linkend="fig-repository-metadata"/> shows that for every repository context,
+                        there is a single root document. E.g. for a <filename>cells/*/nodes/*/servers/*</filename> context,
+                        the root document is <filename>server.xml</filename>. Each of these root documents is expected
+                        to contain a single root configuration object. E.g. for <filename>server.xml</filename>
+                        these are <classname>Server</classname> objects.
+                    </para>
+                    <para>
+                        The root configuration object in the root document of a given context is considered the
+                        parent of the following set of configuration objects:
+                    </para>
+                    <itemizedlist>
+                        <listitem>
+                            <para>
+                                The root configuration objects in all documents in that context
+                                other than the root document.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                The root configuration objects in all root documents of all child contexts.
+                            </para>
+                        </listitem>
+                    </itemizedlist>
+                    <para>
+                        E.g. a <classname>JDBCProvider</classname> object stored in the <filename>resources.xml</filename>
+                        document in a <filename>cells/*/nodes/*/servers/*</filename> context is a child of the
+                        <classname>Server</classname> object in the <filename>server.xml</filename> document in that context.
+                        That <classname>Server</classname> object itself is a child of the <classname>Node</classname>
+                        object stored in the <filename>node.xml</filename> document of the parent context.
+                    </para>
+                </listitem>
+            </orderedlist>
+            <para>
+                It is easy to see that with these definitions, a given configuration object can have at most one parent.
+                Also note that the root context (corresponding to the repository root and not to be confused with
+                the <filename>cells/*</filename> context) doesn't define a root document type. This means that the
+                repository will contain multiple configuration objects that have no parents. This includes the
+                <classname>Cell</classname> object (corresponding to the unique <filename>cells/*</filename> context)
+                as well as one or more <classname>Policy</classname> objects (corresponding to the
+                <filename>waspolicies/*</filename> contexts).
+            </para>
+            <note>
+                <para>
+                    We have seen that documents are simply containers for configuration objects and that WebSphere defines
+                    parent-child relations that connect every configuration object to a limited set of
+                    configuration objects without parents (of which only a single one is usually relevent, namely
+                    the <classname>Cell</classname> object). This means that it is a good approximation to simply view
+                    the WebSphere configuration data as a tree of configuration objects, and that in practice one rarely has
+                    to deal directly with the concept of repository context and document.
+                </para>
+            </note>
+            <para>
+                For a given configuration object type, the metadata described in <xref linkend="metadata"/>
+                determines which types of configuration objects are allowed as parents and as children.
+                This information can be queried using the <methodname>getRelationshipsMetaInfo</methodname>
+                operation on the <classname>ConfigService</classname> MBean or the <methodname>parents</methodname> and
+                <methodname>contents</methodname> methods of the <classname>AdminConfig</classname> object in <command>wsadmin</command>.
+                E.g. for the <classname>CacheProvider</classname> type, the allowed parent types are
+                <classname>Cell</classname>, <classname>Node</classname>, <classname>Server</classname>
+                and <classname>ServerCluster</classname>.
+            </para>
+        </section>
+        <section>
+            <title>Navigating parent-child relations</title>
+            <para>
+                The <classname>AdminConfig</classname> object in <command>wsadmin</command> has several methods that
+                allow to navigate parent-child relations. For navigation from parents to children (or ancestors to descendants), these are:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><methodname>showAttribute</methodname></term>
+                    <listitem>
+                        <para>
+                            This method can be used to navigate from a parent object to a child object if the
+                            parent-child relation is derived from a containment relation in EMF, i.e. if the child object
+                            is part of the same document as the parent object. This type of relation is always defined using
+                            an attribute on the parent object, and in this case the <methodname>showAttribute</methodname>
+                            method returns a list of configuration IDs for the child objects.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>getid</methodname></term>
+                    <term><methodname>list</methodname></term>
+                    <listitem>
+                        <para>
+                            These methods can be used to navigate any type of parent-child relation.
+                            Note that <methodname>list</methodname> actually performs a search in a subtree, i.e.
+                            it allows to navigate directly from an ancestor to a descendant without following
+                            the intermediate parent-child relations.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
+    </section>
+    <section>
+        <title><methodname>getid</methodname> vs. <methodname>list</methodname></title>
+        <para>
+            TODO
+        </para>
     </section>
     <section>
         <title>WebSphere variables</title>
@@ -141,4 +368,35 @@
             TODO: WIM doesn't use the config service; is that the reason why variable substitution is not working??
         </para>
     </section>
+    <appendix>
+        <title>Correspondance between MBean operations and scripting methods</title>
+        <table>
+            <title>Correspondance between <classname>AdminConfig</classname> methods and <classname>ConfigService</classname> operations</title>
+            <tgroup cols="2">
+                <thead>
+                    <row>
+                        <entry><classname>AdminConfig</classname> method (<command>wsadmin</command>)</entry>
+                        <entry><classname>ConfigService</classname> MBean operation</entry>
+                    </row>
+                </thead>
+                <tbody>
+                    <row>
+                        <entry><methodname>parents</methodname></entry>
+                        <entry morerows="1" valign="middle"><methodname>getRelationshipsMetaInfo</methodname></entry>
+                    </row>
+                    <row>
+                        <entry><methodname>contents</methodname></entry>
+                    </row>
+                    <row>
+                        <entry><methodname>list</methodname></entry>
+                        <entry><methodname>queryConfigObjects</methodname></entry>
+                    </row>
+                    <row>
+                        <entry><methodname>getid</methodname></entry>
+                        <entry><methodname>resolve</methodname></entry>
+                    </row>
+                </tbody>
+            </tgroup>
+        </table>
+    </appendix>
 </article>
