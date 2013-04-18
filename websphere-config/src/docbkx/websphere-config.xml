@@ -322,7 +322,7 @@
                 and <classname>ServerCluster</classname>.
             </para>
         </section>
-        <section>
+        <section id="navigating-parent-child">
             <title>Navigating parent-child relations</title>
             <para>
                 The <classname>AdminConfig</classname> object in <command>wsadmin</command> has several methods that
@@ -350,17 +350,39 @@
                             Note that <methodname>list</methodname> actually performs a search in a subtree, i.e.
                             it allows to navigate directly from an ancestor to a descendant without following
                             the intermediate parent-child relations.
+                            More on this in <xref linkend="getid-vs-list"/>.
                         </para>
                     </listitem>
                 </varlistentry>
             </variablelist>
         </section>
     </section>
-    <section>
+    <section id="getid-vs-list">
         <title><methodname>getid</methodname> vs. <methodname>list</methodname></title>
         <para>
-            TODO
+            As mentioned in <xref linkend="navigating-parent-child"/>, the <methodname>getid</methodname> 
+            and <methodname>list</methodname> methods of the <classname>AdminConfig</classname> object
+            in <command>wsadmin</command> both allow to navigate parent-child relations.
+            They differ not only in usage and features, but also in the way they locate configuration objects.
         </para>
+        <section>
+            <title><methodname>getid</methodname></title>
+            <para>
+                
+            </para>
+        </section>
+        <section>
+            <title><methodname>list</methodname></title>
+            <para>
+                
+            </para>
+        </section>
+        <section>
+            <title>How subtree searches are performed</title>
+            <para>
+                
+            </para>
+        </section>
     </section>
     <section>
         <title>WebSphere variables</title>
