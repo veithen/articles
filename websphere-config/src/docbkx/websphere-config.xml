@@ -2,7 +2,8 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <article>
     <articleinfo>
-        <title>Understanding the WebSphere configuration repository</title>
+        <title>Understanding the WebSphere config service</title>
+        <author><firstname>Andreas</firstname><surname>Veithen</surname></author>
         <releaseinfo>Revision <?eval ${project.version}?></releaseinfo>
     </articleinfo>
     <section>
@@ -10,7 +11,7 @@
         <para>
             At a low level, the WebSphere configuration repository is a collection of folders and documents.
             Although these resources are persisted one-to-one as directories and files under the <filename>config</filename>
-            directory in the WebSphere profile, the <firstterm>configuration repository service</firstterm> in WebSphere is more that a simple file
+            directory in the WebSphere profile, the <firstterm>configuration repository service</firstterm> in WebSphere is more than a simple file
             access service. It allows a client (such as <command>wsadmin</command>) to prepare a set of changes
             in a so called <firstterm>workspace</firstterm><footnote><para>Workspaces are stored in the <filename>wstemp</filename> directory
             in the WebSphere profile.</para></footnote> and to save these changes at once (or to discard the changes
@@ -246,7 +247,7 @@
     </section>
     <section>
         <title>Parent-child relationships</title>
-        <section>
+        <section id="parent-child-definition">
             <title>How parent-child relations are defined</title>
             <para>
                 Configuration objects are linked by parent-child relations. They are defined in two different ways:
@@ -355,6 +356,9 @@
                     </listitem>
                 </varlistentry>
             </variablelist>
+            <para>
+                TODO: navigating from child to parent?
+            </para>
         </section>
     </section>
     <section id="getid-vs-list">
@@ -368,26 +372,195 @@
         <section>
             <title><methodname>getid</methodname></title>
             <para>
-                
+                <methodname>getid</methodname> locates configuration objects matching a given <firstterm>containment path</firstterm>.
+                A containment path is a sequence of type/name pairs, the name part being optional.
+                That sequence is passed to <methodname>getid</methodname> as a single string with the following syntax:
+            </para>
+            <screen>/Node:lx03/Server:server1/JDBCProvider:/</screen>
+            <para>
+                Note that the corresponding operation on the <classname>ConfigService</classname> MBean
+                uses a different syntax:
+            </para>
+            <screen>Node=lx03:Server=server1:JDBCProvider=</screen>
+            <para>
+                The first step in the containment path is evaluated using a subtree search starting from the
+                root repository context, using the same approach as the <methodname>list</methodname> method (see below).
+                The result of the evaluation of the first step is a set of configuration objects.
+                Subsequent steps are evaluated iteratively, and each time a new set of configuration objects
+                is constructed by locating the matching child objects of the configuration objects
+                returned by the previous step.
+                The result of the <methodname>getid</methodname> is the set of configuration objects (actually
+                their configuration IDs) returned by the last step.
+            </para>
+            <para>
+                Child objects are located using the definitions described in <xref linkend="parent-child-definition"/>.
+                This process always needs to consider parent-child relations defined by containment relations in EMF.
+                Note that such relations never cross document boundaries.
+                For a configuration object that is the root configuration object in the root document of a
+                repository context, additional parent-child relations need to be considered, and the situation
+                is more complex because these relations cross document (and sometimes repository context) boundaries.
+                Since the type of child configuration objects is known in advance, <methodname>getid</methodname>
+                can use the metadata described in <xref linkend="fig-repository-metadata"/> to narrow down the
+                document(s) (and contexts) that need to be examined.
             </para>
         </section>
-        <section>
+        <section id="adminconfig-list">
             <title><methodname>list</methodname></title>
             <para>
-                
+                <methodname>list</methodname> performs a subtree search for configuration objects of a given type.
+                The one-argument variant of the <methodname>list</methodname> method always starts from the root repository context.
+                The two-argument variant allows to specify the object from where to start the subtree search.
+                If the scope object is an inner configuration object or a root configuration object that doesn't
+                correspond to a root document, then by definition, the search is limited to a single document.
+                On the other hand, if no scope object is given or if the scope object is the root configuration object
+                of a root document, then the search scope corresponds to an entire repository context (including all
+                descendants). This may cover a very large number of documents. To avoid scanning all these documents,
+                the <methodname>list</methodname> method uses a specific algorithm to address that
+                case<footnote><para>To see this in action, use the following trace spec:</para>
+                <screen>com.ibm.ws.management.configservice.*=all:com.ibm.ws.sm.workspace.impl.*=all</screen>
+                <para>This will show the calls to the <methodname>com.ibm.ws.sm.workspace.impl.RepositoryContextImpl#getAllList</methodname>
+                method which returns the list of all documents in a given context.
+                That call is followed by a call to
+                <literal>com.ibm.ws.management.configservice.WorkspaceHelper#getDocAccessor</literal>
+                for each document with a matching name.</para></footnote>:
             </para>
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Determine the document types that may contain objects of the type being searched for.
+                        If the configuration object type is a root configuration object, then
+                        the metadata shown in <xref linkend="fig-repository-metadata"/> allows to get this
+                        information easily. If the object type being searched for is an inner configuration object, then
+                        the EMF metadata is used to determine the corresponding root configuration object type first.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Recursively search the repository context for candidate documents. This simply uses the
+                        fact that all documents of a given type have the same file name.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Search each document found for configuration objects of the expected type.
+                    </para>
+                </listitem>
+            </orderedlist>
         </section>
         <section>
-            <title>How subtree searches are performed</title>
+            <title>Metadata inconsistencies</title>
             <para>
-                
+                WebSphere doesn't validate that the repository structure conforms to the metadata described in
+                <xref linkend="fig-repository-metadata"/>. This implies that it is possible to see documents in
+                the repository that are not expected to be there if one refers to the repository metadata
+                in <filename>.repository</filename>.
+            </para>
+            <para>
+                E.g. <filename>.repository/metadata_cei.xml</filename> specifies
+                that a <filename>resources-cei.xml</filename> file with root object type
+                <classname>EventInfrastructureProvider</classname> can appear in repository contexts of type
+                <literal>cells</literal>, <literal>nodes</literal> and <literal>servers</literal>,
+                but not <literal>clusters</literal>. Nevertheless, when a cluster is created, WebSphere also
+                creates a <filename>resources-cei.xml</filename> document in the corresponding context.
+            </para>
+            <para>
+                Such inconsistencies have interesting consequences because <methodname>getid</methodname> and
+                <methodname>list</methodname> use fairly different algorithms to locate configuration objects
+                and these algorithms are affected differently by inconsistencies with respect to the repository metadata:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <methodname>getid</methodname> with containment path
+                        <literal>/ServerCluster:/EventInfrastructureProvider:/</literal> will return an empty list, even
+                        if one or more clusters exist.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <methodname>getid</methodname> with containment path
+                        <literal>/EventInfrastructureProvider:/</literal> will return a list that contains
+                        <classname>EventInfrastructureProvider</classname> objects in cluster scope.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <methodname>list</methodname> will also return
+                        <classname>EventInfrastructureProvider</classname> objects in cluster scope.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                The reason for these discrepancies is as follows. In the first case, the config service would have to
+                navigate from the <classname>ServerCluster</classname> object to a child object of type
+                <classname>EventInfrastructureProvider</classname>. However, according to the repository metadata,
+                such a parent-child relation doesn't exist; according to that metadata, a
+                <classname>EventInfrastructureProvider</classname> object can only exist as a child of
+                a <classname>Cell</classname>, <classname>Node</classname> or <classname>Server</classname> object.
+                Therefore, the <classname>EventInfrastructureProvider</classname> object is not found.
+            </para>
+            <para>
+                In the other cases, the config service performs a subtree search using the optimized
+                algorithm described in <xref linkend="adminconfig-list"/>. From the metadata it knows that
+                <classname>EventInfrastructureProvider</classname> objects are stored in documents named
+                <filename>resources-cei.xml</filename> and it will recursively search for documents with that name.
+                This search will return <filename>resources-cei.xml</filename> documents stored in repository
+                contexts of type <literal>clusters</literal>, even if according to the metadata they should not exist.
+                That is why in these cases, the config service is able to locate the corresponding
+                <classname>EventInfrastructureProvider</classname> objects.
             </para>
         </section>
     </section>
     <section>
-        <title>WebSphere variables</title>
+        <title>Configuration objects and WebSphere variables</title>
         <para>
-            TODO: WIM doesn't use the config service; is that the reason why variable substitution is not working??
+            The product documentation defines WebSphere variables as follows:
+        </para>
+        <blockquote>
+            <para>
+                WebSphere variables are name and value pairs that are used to provide settings
+                for any of the string data type attributes that are used to configure the product.
+            </para>
+        </blockquote>
+        <para>
+            This implies that WebSphere variables can be used in any attribute of type string of any
+            configuration object. As a matter of fact, variable substitution occurs before the
+            config service returns the value of an attribute and is therefore supported everywhere
+            in the configuration. This can be seen in <xref linkend="fig-variable-expansion"/>.
+        </para>
+        <figure id="fig-variable-expansion">
+            <title>WebSphere variable expansion</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="configobject-getstring.png" format="PNG"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+        <para>
+            In this case, the <classname>EndPointMgr</classname> component looks up the value of the
+            <literal>host</literal> attribute of a configuration object. That results in a call to
+            the <classname>VariableMap</classname> component to substitute WebSphere variables in that
+            attribute value.
+        </para>
+        <para>
+            One important thing to understand is that not all the WebSphere configuration is
+            stored in configuration objects managed by the config service.
+            Some WebSphere components store configuration data as documents in the repository, but without
+            letting the config service manage them as documents containing configuration objects serialized
+            using EMF.
+        </para>
+        <para>
+            An example of a WebSphere subsystem that does this is the Virtual Member Manager (VMM). It stores a
+            certain number of documents with configuration data in the repository under <filename>cells/*/wim</filename>, but these
+            are not XMI documents, and there are no configuration object types corresponding to the contents of
+            these documents, i.e. they can't be managed using the config service.
+        </para>
+        <para>
+            WebSphere variable substitution doesn't automatically apply to this type of configuration data.
+            It is only supported if the WebSphere component or subsystem takes care of it itself.
+            For VMM this is not the case. This explains e.g. why the LDAP host in a federated user repositories configuration
+            (which is part of VMM and therefore doesn't use the config service)
+            cannot be specified using a WebSphere variable, while for a stand-alone LDAP registry (which uses the config service), this is supported.
         </para>
     </section>
     <appendix>
