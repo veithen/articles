@@ -32,7 +32,12 @@
                     <para>
                         A repository context is a structure that can contain documents and nested repository contexts.
                         Each repository context has a type and a name. Contexts are mapped to two-level folder structures,
-                        where the first level identifies the context type and the second level identifies the context name.
+                        where the first level identifies the context type and the second level identifies the context
+                        name<footnote><para>Note that there actually exceptions to this rule. In fact, it appears that
+                        some repository contexts have no name and are represented as a one-level folder structure.
+                        This applies to the <classname>ExtendedRepositoryService</classname> object stored in
+                        the <filename>repository.xml</filename> file under
+                        <filename>cells/<replaceable>name</replaceable>/repository</filename>.</para></footnote>.
                         <xref linkend="fig-contexts-sample"/> shows an example of a repository structure representing
                         two contexts of type <literal>servers</literal>, one named <literal>nodeagent</literal> and
                         one named <literal>server1</literal>.
@@ -45,12 +50,6 @@
                             </imageobject>
                         </mediaobject>
                     </figure>
-                    <note>
-                        <para>
-                            TODO: not entirely correct; there are also contexts that have no name and that are mapped to
-                            a one-level folder structure.
-                        </para>
-                    </note>
                 </listitem>
             </varlistentry>
             <varlistentry>
