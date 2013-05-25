@@ -60,10 +60,10 @@
                 </dependencies>
                 <configuration>
                     <admonGraphics>true</admonGraphics>
-					<admonGraphicsExtension>.svg</admonGraphicsExtension>
-					<admonGraphicsPath>${project.build.directory}/docbkx-resources/admon-graphics/</admonGraphicsPath>
-					<draftWatermarkImage>${project.build.directory}/docbkx-resources/draft.png</draftWatermarkImage>
-					<imgSrcPath>${project.basedir}/src/docbkx/images/</imgSrcPath>
+                    <admonGraphicsExtension>.svg</admonGraphicsExtension>
+                    <admonGraphicsPath>${project.build.directory}/docbkx-resources/admon-graphics/</admonGraphicsPath>
+                    <draftWatermarkImage>${project.build.directory}/docbkx-resources/draft.png</draftWatermarkImage>
+                    <imgSrcPath>${project.basedir}/src/docbkx/images/</imgSrcPath>
                 </configuration>
             </plugin>
             <plugin>
