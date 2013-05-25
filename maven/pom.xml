@@ -5,8 +5,32 @@
     <artifactId>docs</artifactId>
     <version>1-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <scm>
+        <connection>scm:git:https://github.com/veithen/docs.git</connection>
+  	    <developerConnection>scm:git:https://github.com/veithen/docs.git</developerConnection>
+        <url>https://github.com/veithen/docs</url>
+        <tag>HEAD</tag>
+    </scm>
     <modules>
     	<module>docbkx-resources</module>
     	<module>doc-parent</module>
     </modules>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.4.1</version>
+                <configuration>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <distributionManagement>
+        <repository>
+            <id>bintray</id>
+            <url>https://api.bintray.com/maven/veithen/maven/docs</url>
+        </repository>
+    </distributionManagement>
 </project>
