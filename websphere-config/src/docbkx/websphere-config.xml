@@ -93,6 +93,18 @@
             their attributes and relationships which each other.
         </para>
         <para>
+            <xref linkend="fig-cluster-emf"/> shows an example of an EMF package used in the WebSphere
+            configuration, namely in the cluster configuration.
+        </para>
+        <figure id="fig-cluster-emf">
+            <title>EMF model for the cluster configuration</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="cluster-emf.png" format="PNG"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+        <para>
             Starting with version 6.1, the WebSphere runtime has a modular design based on
             the Eclipse platform. It is split into a set of plug-ins, and each of these plug-ins
             can contribute EMF packages to the configuration model.
@@ -168,6 +180,8 @@
             In XMI, contained objects are serialized as child elements of the XML element representing
             the containing object, as shown in the following sample:
         </para>
+        <example id="ex-servercluster-ser">
+            <title>Sample serialization of a <classname>ServerCluster</classname> object</title>
         <programlisting><?db-font-size 70%?><![CDATA[<topology.cluster:ServerCluster xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI"
     xmlns:topology.cluster="http://www.ibm.com/websphere/appserver/schemas/5.0/topology.cluster.xmi"
     xmi:id="ServerCluster_1362990710886"
@@ -177,6 +191,7 @@
   <members xmi:id="ClusterMember_1362990717935" memberName="server2" weight="2"
       uniqueId="1362990716833" nodeName="ulx00004"/>
 </topology.cluster:ServerCluster>]]></programlisting>
+        </example>
         <para>
             Note that an XMI document can have one or more root objects. In the latter case,
             the serialized objects are wrapped in an <literal>xmi:XMI</literal> element.
@@ -211,15 +226,12 @@
             In principle, the same configuration object type could be used both for root configuration objects
             and for inner configuration objects (depending on the part of the configuration where it is used).
             However this possibility is not actually used, which means that the distinction between
-            root and inner not only applies to configuration objects, but also extends to configuration object types.
+            root and inner not only applies to configuration objects, but also extends to configuration object
+            types<footnote><para>There are actually some exceptions to that rule. E.g. the <classname>PMIModule</classname>
+            type is used both for root and inner configuration objects in <filename>pmi-config.xml</filename>.</para></footnote>.
             E.g. <classname>ServerCluster</classname> is a root configuration object type, and
             <classname>ClusterMember</classname> is an inner configuration object type.
         </para>
-        <note>
-            <para>
-                Not correct; see <filename>pmi-config.xml</filename>.
-            </para>
-        </note>
     </section>
     <section>
         <title>Configuration IDs</title>
@@ -233,6 +245,7 @@
             <replaceable>id</replaceable> identifies the configuration object inside that document.
             <replaceable>name</replaceable> is not a mandatory part of the configuration ID. It is returned by WebSphere
             for objects that have a <varname>name</varname> attribute and its only purpose is to improve human readability.
+            If the name contains spaces, then it is enclosed in quotes.
             For configuration IDs passed to WebSphere, the <replaceable>name</replaceable> is ignored.
         </para>
         <para>
@@ -355,8 +368,31 @@
                     </listitem>
                 </varlistentry>
             </variablelist>
+        </section>
+        <section>
+            <title>Navigating from child to parent</title>
             <para>
-                TODO: navigating from child to parent?
+                While <command>wsadmin</command> has several methods to navigate from a configuration object
+                to its children (or descendants), there is no universal method to navigate from a configuration object
+                to its parent.
+            </para>
+            <para>
+                If the parent-child relation is derived from a containment relation in EMF, i.e. if
+                the parent object is part of the same document as the child object, then it may be possible to
+                navigate from the child to the parent. Some containment relations defined in the WebSphere configuration
+                models have corresponding <firstterm>opposite</firstterm> references that point from the contained
+                objects to the containing objects.
+            </para>
+            <para>
+                An example can be seen in <xref linkend="fig-cluster-emf"/>: the <literal>cluster</literal> attribute
+                in the <classname>ClusterMember</classname> type defines a reference that is the opposite of the reference
+                defined by the <literal>members</literal> attribute in <classname>ServerCluster</classname>.
+                This means that it is possible to navigate from a <classname>ClusterMember</classname> back to
+                the parent <classname>ServerCluster</classname> by querying the value of the <literal>cluster</literal> attribute
+                (using <methodname>showAttribute</methodname> e.g.).
+                As can bee seen in <xref linkend="ex-servercluster-ser"/>, the <literal>cluster</literal> attribute
+                is not serialized in the XMI files. The reason is that since it is an opposite reference, serializing
+                it would be completely redundant.
             </para>
         </section>
     </section>
