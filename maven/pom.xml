@@ -3,13 +3,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.veithen.docs</groupId>
     <artifactId>docs</artifactId>
-    <version>1-SNAPSHOT</version>
+    <version>1</version>
     <packaging>pom</packaging>
     <scm>
         <connection>scm:git:https://github.com/veithen/docs.git</connection>
   	    <developerConnection>scm:git:https://github.com/veithen/docs.git</developerConnection>
         <url>https://github.com/veithen/docs</url>
-        <tag>HEAD</tag>
+        <tag>docs-1</tag>
     </scm>
     <modules>
     	<module>docbkx-resources</module>

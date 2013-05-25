@@ -4,7 +4,7 @@
     <parent>
 	    <groupId>com.github.veithen.docs</groupId>
 	    <artifactId>docs</artifactId>
-	    <version>1-SNAPSHOT</version>
+	    <version>1</version>
     </parent>
     <artifactId>docbkx-resources</artifactId>
     <packaging>jar</packaging>
