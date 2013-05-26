@@ -4,7 +4,7 @@
     <parent>
 	    <groupId>com.github.veithen.docs</groupId>
 	    <artifactId>docs</artifactId>
-	    <version>1</version>
+	    <version>2-SNAPSHOT</version>
     </parent>
     <artifactId>doc-parent</artifactId>
     <packaging>pom</packaging>
@@ -14,7 +14,7 @@
                  (They would be substituted using the properties of the child POM, not this POM) -->
             <groupId>com.github.veithen.docs</groupId>
             <artifactId>docbkx-resources</artifactId>
-            <version>1</version>
+            <version>2-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>
