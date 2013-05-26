@@ -33,7 +33,7 @@
                         A repository context is a structure that can contain documents and nested repository contexts.
                         Each repository context has a type and a name. Contexts are mapped to two-level folder structures,
                         where the first level identifies the context type and the second level identifies the context
-                        name<footnote><para>Note that there actually exceptions to this rule. In fact, it appears that
+                        name<footnote><para>Note that there are actually exceptions to this rule. In fact, it appears that
                         some repository contexts have no name and are represented as a one-level folder structure.
                         This applies to the <classname>ExtendedRepositoryService</classname> object stored in
                         the <filename>repository.xml</filename> file under
@@ -195,7 +195,7 @@
         <para>
             Note that an XMI document can have one or more root objects. In the latter case,
             the serialized objects are wrapped in an <literal>xmi:XMI</literal> element.
-            E.g. a <filename>resources.xml</filename> document contains a collections a collection
+            E.g. a <filename>resources.xml</filename> document contains a collection
             of <classname>J2EEResourceProvider</classname> objects.
         </para>
         <para>
@@ -276,8 +276,8 @@
                         <xref linkend="fig-repository-metadata"/> shows that for every repository context,
                         there is a single root document. E.g. for a <filename>cells/*/nodes/*/servers/*</filename> context,
                         the root document is <filename>server.xml</filename>. Each of these root documents is expected
-                        to contain a single root configuration object. E.g. for <filename>server.xml</filename>
-                        these are <classname>Server</classname> objects.
+                        to contain a single root configuration object. E.g. for a <filename>server.xml</filename> document
+                        this is a <classname>Server</classname> object.
                     </para>
                     <para>
                         The root configuration object in the root document of a given context is considered the
@@ -302,7 +302,16 @@
                         <classname>Server</classname> object in the <filename>server.xml</filename> document in that context.
                         That <classname>Server</classname> object itself is a child of the <classname>Node</classname>
                         object stored in the <filename>node.xml</filename> document of the parent context.
+                        This is illustrated by <xref linkend="fig-cross-doc-relations"/>.
                     </para>
+                    <figure id="fig-cross-doc-relations">
+                        <title>Cross-document parent-child relations</title>
+                        <mediaobject>
+                            <imageobject>
+                                <imagedata fileref="cross-doc-relations.png" format="PNG"/>
+                            </imageobject>
+                        </mediaobject>
+                    </figure>
                 </listitem>
             </orderedlist>
             <para>
@@ -350,7 +359,8 @@
                             parent-child relation is derived from a containment relation in EMF, i.e. if the child object
                             is part of the same document as the parent object. This type of relation is always defined using
                             an attribute on the parent object, and in this case the <methodname>showAttribute</methodname>
-                            method returns a list of configuration IDs for the child objects.
+                            method returns the configuration ID of the child object (or a list of configuration IDs for the child objects,
+                            depending on the multiplicity of the relation).
                         </para>
                     </listitem>
                 </varlistentry>
@@ -414,6 +424,7 @@
             <screen>/Node:lx03/Server:server1/JDBCProvider:/</screen>
             <para>
                 Note that the corresponding operation on the <classname>ConfigService</classname> MBean
+                (see <xref linkend="wsadmin-vs-mbeans"/>)
                 uses a different syntax:
             </para>
             <screen>Node=lx03:Server=server1:JDBCProvider=</screen>
@@ -424,7 +435,7 @@
                 Subsequent steps are evaluated iteratively, and each time a new set of configuration objects
                 is constructed by locating the matching child objects of the configuration objects
                 returned by the previous step.
-                The result of the <methodname>getid</methodname> is the set of configuration objects (actually
+                The result of the <methodname>getid</methodname> method is the set of configuration objects (more precisely
                 their configuration IDs) returned by the last step.
             </para>
             <para>
@@ -433,10 +444,18 @@
                 Note that such relations never cross document boundaries.
                 For a configuration object that is the root configuration object in the root document of a
                 repository context, additional parent-child relations need to be considered, and the situation
-                is more complex because these relations cross document (and sometimes repository context) boundaries.
+                is more complex because these relations cross document and repository context boundaries.
                 Since the type of child configuration objects is known in advance, <methodname>getid</methodname>
                 can use the metadata described in <xref linkend="fig-repository-metadata"/> to narrow down the
                 document(s) (and contexts) that need to be examined.
+            </para>
+            <para>
+                For example, to evaluate the second step of the containment path shown above, WebSphere will
+                use its knowledge that a <classname>Server</classname> object can only exists as a child object
+                of a <classname>Node</classname> object if it is contained in a <filename>server.xml</filename>
+                document in a subcontext of type <literal>servers</literal> (see <xref linkend="fig-cross-doc-relations"/>).
+                Therefore it only needs to examine a very limited number of documents (corresponding to the number
+                of WebSphere instances defined on that node).
             </para>
         </section>
         <section id="adminconfig-list">
@@ -496,7 +515,11 @@
                 <classname>EventInfrastructureProvider</classname> can appear in repository contexts of type
                 <literal>cells</literal>, <literal>nodes</literal> and <literal>servers</literal>,
                 but not <literal>clusters</literal>. Nevertheless, when a cluster is created, WebSphere also
-                creates a <filename>resources-cei.xml</filename> document in the corresponding context.
+                creates a <filename>resources-cei.xml</filename> document in the corresponding
+                context.<footnote><para>According to IBM support, this is a known defect that will not be fixed because
+                (1) it only affects the <methodname>getid</methodname> and a workaround is to use <methodname>list</methodname> instead,
+                (2) IBM believes that correcting the metadata may have side effect causing problems elsewhere and
+                (3) CEI is getting deprecated.</para></footnote>
             </para>
             <para>
                 Such inconsistencies have interesting consequences because <methodname>getid</methodname> and
@@ -559,7 +582,9 @@
         </blockquote>
         <para>
             This implies that WebSphere variables can be used in any attribute of type string of any
-            configuration object. As a matter of fact, variable substitution occurs before the
+            configuration object. As a matter of fact, at runtime<footnote><para>That is when a WebSphere component
+            requests configuration data; <command>wsadmin</command> will always see the unexpanded value.</para></footnote>,
+            variable substitution occurs before the
             config service returns the value of an attribute and is therefore supported everywhere
             in the configuration. This can be seen in <xref linkend="fig-variable-expansion"/>.
         </para>
@@ -598,11 +623,13 @@
             cannot be specified using a WebSphere variable, while for a stand-alone LDAP registry (which uses the config service), this is supported.
         </para>
     </section>
-    <appendix>
+    <appendix id="wsadmin-vs-mbeans">
         <title>Correspondance between MBean operations and scripting methods</title>
         <table>
             <title>Correspondance between <classname>AdminConfig</classname> methods and <classname>ConfigService</classname> operations</title>
             <tgroup cols="2">
+                <colspec colwidth="1*"/>
+                <colspec colwidth="1*"/>
                 <thead>
                     <row>
                         <entry><classname>AdminConfig</classname> method (<command>wsadmin</command>)</entry>
