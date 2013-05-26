@@ -8,6 +8,15 @@
     </parent>
     <artifactId>doc-parent</artifactId>
     <packaging>pom</packaging>
+    <dependencies>
+        <dependency>
+            <!-- Don't use ${project.groupId} and ${project.version} here!
+                 (They would be substituted using the properties of the child POM, not this POM) -->
+            <groupId>com.github.veithen.docs</groupId>
+            <artifactId>docbkx-resources</artifactId>
+            <version>2-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
     <build>
         <plugins>
             <plugin>
@@ -18,19 +27,11 @@
                         <id>unpack-docbkx-resources</id>
                         <phase>generate-resources</phase>
                         <goals>
-                            <goal>unpack</goal>
+                            <goal>unpack-dependencies</goal>
                         </goals>
                         <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>${project.groupId}</groupId>
-                                    <artifactId>docbkx-resources</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>jar</type>
-                                    <overWrite>false</overWrite>
-                                    <outputDirectory>${project.build.directory}/docbkx-resources</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
+                            <includeArtifactIds>docbkx-resources</includeArtifactIds>
+                            <outputDirectory>${project.build.directory}/docbkx-resources</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
