@@ -11,6 +11,12 @@
     <artifactId>websphere-config</artifactId>
     <version>1-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <scm>
+        <connection>scm:git:https://github.com/veithen/docs.git</connection>
+        <developerConnection>scm:git:git@github.com:veithen/docs.git</developerConnection>
+        <url>https://github.com/veithen/docs</url>
+        <tag>HEAD</tag>
+    </scm>
     <repositories>
         <repository>
             <id>bintray</id>
