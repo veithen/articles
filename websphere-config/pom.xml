@@ -14,7 +14,7 @@
     <repositories>
         <repository>
             <id>bintray</id>
-            <url>https://api.bintray.com/maven/veithen/maven/rbeans</url>
+            <url>http://dl.bintray.com/veithen/maven</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
