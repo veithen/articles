@@ -6,9 +6,21 @@
     <parent>
         <groupId>com.github.veithen.docs</groupId>
         <artifactId>doc-parent</artifactId>
-        <version>1-SNAPSHOT</version>
+        <version>1</version>
     </parent>
     <artifactId>websphere-config</artifactId>
     <version>1-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <repositories>
+        <repository>
+            <id>bintray</id>
+            <url>https://api.bintray.com/maven/veithen/maven/rbeans</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
