@@ -7,7 +7,7 @@
     <packaging>pom</packaging>
     <scm>
         <connection>scm:git:https://github.com/veithen/docs.git</connection>
-  	    <developerConnection>scm:git:https://github.com/veithen/docs.git</developerConnection>
+  	    <developerConnection>scm:git:git@github.com:veithen/docs.git</developerConnection>
         <url>https://github.com/veithen/docs</url>
         <tag>HEAD</tag>
     </scm>
