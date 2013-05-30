@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<article>
+    <articleinfo>
+        <title>Extending WebSphere</title>
+        <author><firstname>Andreas</firstname><surname>Veithen</surname></author>
+        <releaseinfo>Revision <?eval ${project.version}?></releaseinfo>
+    </articleinfo>
+    <section>
+        <title>Setting up Eclipse</title>
+        <para>
+            TODO: target platform [Note: workspace scope], JRE, execution environment? [Yes, to make sure that the ant build scripts use the correct Java version]
+        </para>
+        <figure id="fig-add-installed-jre">
+            <title>Adding the WebSphere JDK to Eclipse</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="add-installed-jre.png" format="PNG"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+    </section>
+    <section>
+        <title>Creating a plug-in for WebSphere</title>
+        <para>
+            TODO
+        </para>
+        <procedure>
+        
+        
+            <step>
+                <para>
+                    Add <literal>com.ibm.wsspi.extension</literal> to the list of required plug-ins.
+                    This will allow you to define extensions using the plug-in manifest editor.
+                    Of course, if your plug-in doesn't declare any extensions for extension points
+                    defined by WebSphere (e.g. if the plug-in is a pure OSGi bundle), then this
+                    dependency is not needed.
+                </para>
+            </step>
+        </procedure>
+    </section>
+    <section>
+        <title>Creating a component</title>
+        <procedure>
+            <step>
+                <para>
+                    Create a class extending <classname>com.ibm.wsspi.runtime.component.WsComponentImpl</classname>
+                    and override one or more of the lifecycle methods as necessary:
+                    <methodname>initialize</methodname>, <methodname>start</methodname>, <methodname>stop</methodname>
+                    and <methodname>destroy</methodname>.
+                </para>
+            </step>
+        </procedure>
+    </section>
+    <section>
+        <title>Logging and tracing</title>
+        <para>
+            TODO
+        </para>
+    </section>
+    <section>
+        <title>Registering MBeans</title>
+        <procedure>
+            <step>
+                <para>
+                    Create an MBean descriptor.
+                    The MBean descriptor declares the attributes, operations and notifications of the MBean.
+                    The format of the MBean descriptor file is defined by a DTD (<filename>MbeanDescriptor.dtd</filename>) which
+                    can be found in the <filename>properties</filename> directory under the
+                    root install directory of WebSphere Application Server.
+                    The descriptor should have the following document type declaration:
+                </para>
+                <screen><![CDATA[<!DOCTYPE MBean SYSTEM "MbeanDescriptor.dtd">]]></screen>
+                <tip>
+                    <para>
+                        To allow Eclipse to load the DTD and enable auto-complete, add a suffix entry to the XML catalog, as
+                        shown in <xref linkend="fig-mbeandescriptor-catalog"/>.
+                    </para>
+                    <figure id="fig-mbeandescriptor-catalog">
+                        <title>Adding <filename>MbeanDescriptor.dtd</filename> to the XML catalog</title>
+                        <mediaobject>
+                            <imageobject>
+                                <imagedata fileref="mbeandescriptor-catalog.png" format="PNG"/>
+                            </imageobject>
+                        </mediaobject>
+                    </figure>
+                </tip>
+            </step>
+            <step>
+                <para>
+                    AdminServiceFactory.getMBeanFactory().activateMBean
+                    
+                    need to create a runtime collaborator
+                </para>
+                <para>
+                    The <methodname>activateMBean</methodname> method takes the following arguments:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><parameter>type</parameter></term>
+                        <listitem>
+                            <para>
+                                TODO: need to be the same as the type attribute on the root element of the descriptor???
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>collaborator</parameter></term>
+                        <listitem>
+                            <para>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>configId</parameter></term>
+                        <listitem>
+                            <para>
+                                The value of the <literal>mbeanIdentifier</literal> key property in the object name
+                                of the MBean.
+                                This is only meaningful for MBeans representing resources defined by objects in the WebSphere
+                                configuration. E.g. in the object name of an MBean of type <classname>DataSource</classname>, the
+                                <literal>mbeanIdentifier</literal> is set to the corresponding configuration object of type <classname>DataSource</classname>.
+                                For a custom MBean, there usually is no corresponding configuration object and this parameter
+                                should be set to <literal>null</literal>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>descriptor</parameter></term>
+                        <listitem>
+                            <para>
+                            
+                                From the Javadoc: the file name of the MBean XML descriptor file. If null is specified, the default is MBean type.xml.
+                            
+                            
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><parameter>keyProperties</parameter></term>
+                        <listitem>
+                            <para>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </step>
+            <step>
+                <para>
+                    Add an extension of type <literal>com.ibm.wsspi.extension.mbean-provider</literal> to the plug-in.
+                    This is necessary to let WebSphere now that it has to look for MBean descriptors in the plug-in.
+                    If this extension is missing, then <methodname>activateMBean</methodname> will fail with a
+                    <classname>java.io.FileNotFoundException</classname>.
+                </para>
+            </step>
+        </procedure>
+        <para>
+            Further reading:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    <ulink url="http://pic.dhe.ibm.com/infocenter/wasinfo/v8r5/topic/com.ibm.websphere.base.doc/ae/tjmx_standard_dynamic_mbean.html"/>
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    <ulink url="http://www.ibm.com/developerworks/websphere/techjournal/0304_williamson/williamson.html"/>
+                </para>
+            </listitem>
+        </itemizedlist>
+    </section>
+    <section>
+        <title>Implementing process type specific features</title>
+        <para>
+        
+        String processType = AdminServiceFactory.getAdminService().getProcessType();
+        if (!(processType.equals("DeploymentManager"))) {
+            throw new ComponentDisabledException();
+        }
+        
+        </para>
+    </section>
+    <section>
+        <title>Deploying custom plug-ins to WebSphere</title>
+        <para>
+            Deploying custom plug-ins to WebSphere involves two steps:
+        </para>
+        <procedure>
+            <step>
+                <para>
+                    Copy the plug-in JARs to the <filename>plugins</filename> folder in the root directory of the
+                    WebSphere installation.
+                </para>
+                <para>
+                    It is possible to do that directly from within Eclipse using
+                    <menuchoice><guimenu>Export...</guimenu><guimenuitem>Deployable plug-ins and fragments</guimenuitem></menuchoice>
+                    and then choosing the root installation directory as destination.
+                    
+                    TODO: will not overwrite, but create a new version
+                </para>
+            </step>
+            <step>
+                <para>
+                    TODO: osgiCfgInit
+                </para>
+            </step>
+        </procedure>
+        <para>
+            Note that all WebSphere instances belonging to the given installation should be stopped
+            while deploying the plug-ins.
+        </para>
+    </section>
+    <section>
+        <title>Troubleshooting</title>
+        <section>
+            <title>Component not loaded</title>
+            <procedure>
+                <step>
+                    <para>
+                        Check <filename>SystemOut.log</filename> for WSVR warnings and errors reported by
+                        <classname>com.ibm.ws.runtime.provisioning.ComponentMetaDataMgr</classname>.
+                        They will be triggered by incorrect extension declarations in <filename>plugin.xml</filename>.
+                    </para>
+                </step>
+            </procedure>
+        </section>
+    </section>
+</article>
