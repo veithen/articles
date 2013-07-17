@@ -334,6 +334,13 @@ org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher \
 -metadataRepository file:/was_repo \
 -artifactRepository file:/was_repo \
 -source /opt/IBM/WebSphere/AppServer -compress -publishArtifacts</screen>
+            <tip>
+                <para>
+                    To import multiple WebSphere versions into the same P2 repository, use the
+                    <option>-append</option> option. If the <option>-append</option> option is not specified,
+                    then the publisher will clear the repository before importing the artifacts.
+                </para>
+            </tip>
             <para>
                 Once this is done, you can set up the repository in Maven:
             </para>
