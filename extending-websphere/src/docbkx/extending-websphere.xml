@@ -355,10 +355,15 @@ org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher \
             <itemizedlist>
                 <listitem>
                     <para>
-                        Most packages exported by the WebSphere bundles are not versioned. This means that dependency resolution
+                        In WAS 6.1 and 7.0, most packages exported by the WebSphere bundles are not versioned. This means that dependency resolution
                         is only predictable if the P2 repository contains artifacts from a single WebSphere version.
                         This contrasts with the first approach where the WebSphere version is specified in the POM dependencies.
                     </para>
+                    <note>
+                        <para>
+                            TODO: probably this statement is not entirely correct; analyze how the version is selected (the most recent one??)
+                        </para>
+                    </note>
                 </listitem>
                 <listitem>
                     <para>
