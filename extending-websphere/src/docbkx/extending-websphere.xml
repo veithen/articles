@@ -393,6 +393,43 @@ org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher \
                 A solution is the add <filename>lib/boostrap.jar</filename> from the WebSphere installation to the boot classpath
                 when running the unit tests.
             </para>
+            <para>
+                To run unit tests, Tycho also needs to be able to resolve the following bundles (assuming that the
+                unit tests use JUnit 4):
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <literal>org.eclipse.equinox.launcher</literal>
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <literal>org.junit</literal>
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <literal>org.hamcrest.core</literal>
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                Typically they are made available by adding an Eclipse P2 repository, e.g.:
+            </para>
+            <programlisting><![CDATA[<repository>
+    <id>kepler</id>
+    <layout>p2</layout>
+    <url>http://download.eclipse.org/releases/kepler</url>
+</repository>]]></programlisting>
+            <para>
+                The problem with this is that since WebSphere uses Eclipse libraries, Tycho will likely
+                resolve some of them from the Eclipse repository instead of the WebSphere P2 repository created
+                in the previous section. This will create incompatibilities because WebSphere relies on particular
+                versions of these libraries (without declaring the necessary constraints).
+                To avoid this, it is necessary to create a specific P2 repository with just the bundles
+                enumerated above, or to include these bundles in the WebSphere P2 repository.
+            </para>
         </section>
     </section>
 </article>
