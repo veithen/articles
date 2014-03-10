@@ -382,5 +382,17 @@ org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher \
                 </listitem>
             </itemizedlist>
         </section>
+        <section>
+            <title>Running unit tests</title>
+            <para>
+                When attempting to run unit tests that depend on WebSphere classes, you may encounter errors related
+                to missing classes in the <package>com.ibm.ws.bootstrap</package> package, for example:
+            </para>
+            <screen>java.lang.NoClassDefFoundError: com.ibm.ws.bootstrap.RASWsLoggerFactory</screen>
+            <para>
+                A solution is the add <filename>lib/boostrap.jar</filename> from the WebSphere installation to the boot classpath
+                when running the unit tests.
+            </para>
+        </section>
     </section>
 </article>
